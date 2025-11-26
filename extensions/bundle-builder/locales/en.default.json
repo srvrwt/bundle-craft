@@ -1,0 +1,4 @@
+{
+  "name": "bundle-builder",
+  "welcome": "Welcome to the {{target}} extension!"
+}
