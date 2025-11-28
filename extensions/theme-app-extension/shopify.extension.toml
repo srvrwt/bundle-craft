@@ -1,0 +1,4 @@
+name = "theme-app-extension"
+type = "theme"
+uid = "382a4f7b-908d-3a46-ed99-dc04ce436d38987c702b"
+bundle_builder = { name = "Bundle Builder", target = "section" }
