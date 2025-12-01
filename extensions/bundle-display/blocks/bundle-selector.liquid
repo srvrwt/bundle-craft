@@ -1,0 +1,169 @@
+<div class="bundle-builder-container">
+  <h2>{{ section.settings.heading }}</h2>
+
+  <div id="bundle-products"></div>
+
+  <div class="bundle-summary">
+    <p>Total Price: <span id="bundle-total">0</span></p>
+    <button id="add-bundle" class="bundle-btn">Add Bundle to Cart</button>
+  </div>
+</div>
+
+<style>
+  .bundle-builder-container {
+    padding: 5px;
+    border: 1px solid #ddd;
+  }
+
+  .bundle-product-card {
+    border: 1px solid #ccc;
+    padding: 0;
+    display: inline-block;
+    width: auto;
+    margin: 5px;
+    text-align: center;
+    min-width: 100px;
+  }
+
+  .bundle-product-card img {
+    width: 100%;
+    object-fit: cover;
+    display: block;
+    aspect-ratio: 1/1.2;
+  }
+
+  .bundle-product-card h4 {
+    margin: 0;
+    padding: 6px;
+  }
+
+  .bundle-summary {
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .bundle-summary p {
+    margin: 0 0 8px;
+    text-align: center;
+  }
+
+  .bundle-product-card p {
+    margin: 0;
+    padding: 0 6px;
+    line-height: 1.2;
+  }
+
+  .bundle-btn {
+    padding: 12px 20px;
+    background: black;
+    color: white;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    width: calc(100% - 10px);
+    margin-bottom: 5px;
+  }
+
+  button.select-btn {
+    font-size: 12px;
+    border: none;
+    padding: 6px;
+    background: #000000;
+    border-radius: 4px;
+    color: #ffffff;
+    cursor: pointer;
+  }
+
+  #bundle-products {
+    display: flex;
+    overflow: auto;
+  }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('bundle-products');
+    const totalEl = document.getElementById('bundle-total');
+
+    let selectedItems = [];
+    fetch('/products.json?limit=50')
+      .then((res) => res.json())
+      .then((data) => {
+        cpns;
+        const products = data.products;
+
+        products.forEach((product) => {
+          const firstVariant = product.variants[0];
+
+          const card = document.createElement('div');
+          card.className = 'bundle-product-card';
+
+          card.innerHTML = `
+          <img src="${product.images[0]?.src}" />
+          <h4>${product.title}</h4>
+          <p>Price: ₹${firstVariant.price}</p>
+          <button class="select-btn" data-id="${firstVariant.id}" data-price="${firstVariant.price}">
+            Add to Bundle
+          </button>
+        `;
+
+          container.appendChild(card);
+        });
+        document.querySelectorAll('.select-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const price = parseFloat(btn.dataset.price);
+
+            selectedItems.push({
+              id,
+              quantity: 1,
+            });
+
+            updateTotal();
+            btn.textContent = 'Added ✔';
+            btn.disabled = true;
+          });
+        });
+      });
+    function updateTotal() {
+      let total = 0;
+      selectedItems.forEach((item) => {
+        const btn = document.querySelector(`[data-id="${item.id}"]`);
+        total += parseFloat(btn.dataset.price);
+      });
+      totalEl.textContent = total.toFixed(2);
+    }
+    document.getElementById('add-bundle').addEventListener('click', () => {
+      if (selectedItems.length === 0) {
+        alert('Select at least one item!');
+        return;
+      }
+
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: selectedItems,
+        }),
+      })
+        .then((res) => res.json())
+        .then(() => {
+          window.location.href = '/cart';
+        });
+    });
+  });
+</script>
+{% schema %}
+{
+  "name": "Bundle Builder",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Create Your Bundle"
+    }
+  ]
+}
+{% endschema %}
